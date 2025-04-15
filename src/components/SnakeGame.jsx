@@ -9,7 +9,7 @@ const filas = 10;
 const columnas = 18;
 const posicionViborita = [{ x: 5, y: 5 }];
 const posicionInicial = { x: 1, y: 0 };
-let velocidad = 20;
+let velocidad = 30;
 
 function SnakeGame() {
   const [snake, setSnake] = useState(posicionViborita);
@@ -202,8 +202,8 @@ function SnakeGame() {
   }, [direccion]);
 
   useEffect(() => {
-    if (score >= 100) {
-      velocidad += -2;
+    if (score >= 20) {
+      velocidad += -1.2;
     }
   }, [score]);
 
@@ -261,7 +261,7 @@ function SnakeGame() {
                           celdaViborita(x, y)
                             ? 'bg-black'
                             : celdaComida(x, y)
-                            ? 'bg-black'
+                            ? 'bg-red-600'
                             : ''
                         }`}
                       ></div>
