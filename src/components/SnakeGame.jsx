@@ -1,6 +1,9 @@
 import React, { use } from 'react';
 import { useEffect, useState, useRef } from 'react';
 import telefono from '../assets/telefono-nokia3.png';
+import audioFondo from '../assets/beat.mp3';
+import audioComida from '../assets/eat.mp3';
+import audioPerdiste from '../assets/lose.mp3';
 
 const filas = 10;
 const columnas = 18;
@@ -16,6 +19,53 @@ function SnakeGame() {
   const frameCountRef = useRef(0);
   const requestRef = useRef();
   const prevTimeRef = useRef();
+  const audioRef = useRef(new Audio(audioFondo));
+  const audioComidaRef = useRef(new Audio(audioComida));
+  const audioPerdisteRef = useRef(new Audio(audioPerdiste));
+  const [audioPermitido, setAudioPermitido] = useState(false);
+
+  const habilitarAudio = () => {
+    if (!audioPermitido) {
+      setAudioPermitido(true);
+
+      // Intentar reproducir todos los audios para "desbloquearlos"
+      audioRef.current.play().catch(() => {});
+      audioComidaRef.current.volume = 0;
+      audioComidaRef.current.play().catch(() => {});
+      audioComidaRef.current.pause();
+      audioComidaRef.current.volume = 1;
+
+      audioPerdisteRef.current.volume = 0;
+      audioPerdisteRef.current.play().catch(() => {});
+      audioPerdisteRef.current.pause();
+      audioPerdisteRef.current.volume = 1;
+    }
+  };
+
+  useEffect(() => {
+    audioRef.current.loop = true;
+
+    const playPromise = audioRef.current.play();
+
+    if (playPromise !== undefined) {
+      playPromise.catch((error) => {
+        console.log(
+          'La reproducción automática fue bloqueada por el navegador'
+        );
+      });
+    }
+
+    return () => {
+      audioRef.current.pause();
+      audioRef.current.currentTime = 0;
+    };
+  }, []);
+
+  const iniciarMusica = () => {
+    audioRef.current.play();
+  };
+
+  iniciarMusica();
 
   const generarComida = (snake) => {
     try {
@@ -38,6 +88,41 @@ function SnakeGame() {
     }
   };
 
+  const reproducirSonidoComida = () => {
+    if (audioPermitido) {
+      audioComidaRef.current.currentTime = 0;
+      audioComidaRef.current.play().catch(() => {});
+    }
+  };
+
+  const reproducirSonidoPerdiste = () => {
+    if (audioPermitido) {
+      audioPerdisteRef.current.currentTime = 0;
+      audioPerdisteRef.current.play().catch(() => {});
+    }
+  };
+
+  useEffect(() => {
+    const habilitarAudioConInteraccion = () => {
+      habilitarAudio();
+      // Remover listeners una vez habilitado
+      ['click', 'keydown', 'touchstart'].forEach((event) =>
+        document.removeEventListener(event, habilitarAudioConInteraccion)
+      );
+    };
+
+    // Agregar listeners para eventos comunes de interacción
+    ['click', 'keydown', 'touchstart'].forEach((event) =>
+      document.addEventListener(event, habilitarAudioConInteraccion)
+    );
+
+    return () => {
+      ['click', 'keydown', 'touchstart'].forEach((event) =>
+        document.removeEventListener(event, habilitarAudioConInteraccion)
+      );
+    };
+  }, []);
+
   const [comida, setComida] = useState(() => generarComida(posicionViborita));
 
   const moverViborita = () => {
@@ -48,13 +133,11 @@ function SnakeGame() {
         y: cabeza.y + direccion.y,
       };
 
-      // Si la cabeza sale por un borde, aparece por el otro lado
       if (nuevaCabeza.x < 0) nuevaCabeza.x = columnas - 1;
       if (nuevaCabeza.x >= columnas) nuevaCabeza.x = 0;
       if (nuevaCabeza.y < 0) nuevaCabeza.y = filas - 1;
       if (nuevaCabeza.y >= filas) nuevaCabeza.y = 0;
 
-      // Solo perdemos si nos chocamos con nuestro cuerpo
       if (
         prev.some(
           (segmento) =>
@@ -62,6 +145,7 @@ function SnakeGame() {
         )
       ) {
         setFinalizar(true);
+        reproducirSonidoPerdiste();
         return prev;
       }
 
@@ -70,6 +154,7 @@ function SnakeGame() {
       if (nuevaCabeza.x === comida.x && nuevaCabeza.y === comida.y) {
         setComida(generarComida(nuevoCuerpo));
         setScore((score) => score + 10);
+        reproducirSonidoComida();
         return nuevoCuerpo;
       } else {
         nuevoCuerpo.pop();
@@ -118,7 +203,7 @@ function SnakeGame() {
   }, [direccion]);
 
   useEffect(() => {
-    if (score >= 20) {
+    if (score >= 100) {
       velocidad += -2;
     }
   }, [score]);
@@ -130,7 +215,20 @@ function SnakeGame() {
 
   return (
     <>
-      <div className="relative w-full h-screen flex items-center justify-center overflow-hidden">
+      <div
+        className="relative w-full h-screen flex items-center justify-center overflow-hidden"
+        onClick={habilitarAudio}
+      >
+        {!audioPermitido && (
+          <div className="absolute top-4 right-4 z-20">
+            <button
+              className="bg-green-700 text-white px-3 py-1 rounded-full text-sm"
+              onClick={habilitarAudio}
+            >
+              🔊 Activar sonido
+            </button>
+          </div>
+        )}
         <div className="relative w-full h-full flex items-center justify-center">
           <img
             src={telefono}
@@ -177,7 +275,7 @@ function SnakeGame() {
               {finalizar && (
                 <div className="absolute top-[45%] w-full text-center mt-2">
                   <span className="text-black text-xs font-bold">
-                    Perdiste paa
+                    Perdiste paa :(
                   </span>
                 </div>
               )}
