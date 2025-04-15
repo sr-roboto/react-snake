@@ -1,7 +1,8 @@
 import React from 'react';
 import { useEffect, useState, useRef } from 'react';
+import telefono from '../assets/telefono-antiguo.png';
 
-const cuadricula = 12;
+const cuadricula = 10;
 const posicionViborita = [{ x: 5, y: 5 }];
 const posicionInicial = { x: 1, y: 0 };
 const velocidad = 8;
@@ -71,16 +72,13 @@ function SnakeGame() {
     });
   };
 
-  // Función de animación usando requestAnimationFrame
   const animar = (tiempo) => {
     if (prevTimeRef.current != undefined) {
       const deltaTime = tiempo - prevTimeRef.current;
 
-      // Solo actualizar el juego cuando no esté finalizado
       if (!finalizar) {
         frameCountRef.current += 1;
 
-        // Mover la serpiente cada VELOCIDAD frames
         if (frameCountRef.current >= velocidad) {
           moverViborita();
           frameCountRef.current = 0;
@@ -120,17 +118,32 @@ function SnakeGame() {
 
   return (
     <>
-      <div className="flex flex-col items-center mt-10">
-        <h1 className="text-2xl font-bold mb-4">🐍 Snake Game</h1>
-        {finalizar && (
-          <div className="text-red-500 font-bold mb-2">¡Game Over!</div>
-        )}
-        <div className="grid grid-cols-12 border border-gray-500">
-          {Array.from({ length: cuadricula }).flatMap((_, y) =>
-            Array.from({ length: cuadricula }).map((_, x) => (
-              <div
-                key={`${x}-${y}`}
-                className={`w-8 h-8 border border-gray-300 
+      // Contenedor principal que ocupa toda la pantalla y evita scroll
+      <div className="fixed inset-0 overflow-hidden bg-black">
+        <div className="flex justify-center items-center h-screen">
+          <div className="relative scale-200 md:w-96">
+            <div className="overflow-hidden">
+              <img
+                src={telefono}
+                alt="Teléfono antiguo"
+                className="w-full object-cover object-center"
+                style={{ marginTop: '-20%' }}
+              />
+            </div>
+
+            <div className="absolute top-[10%] left-[23%] w-[68%] h-[60%] flex flex-col items-center rounded-sm overflow-hidden">
+              {finalizar && (
+                <div className="text-red-500 text-xs font-bold">
+                  ¡Game Over!
+                </div>
+              )}
+
+              <div className="grid grid-cols-10 border border-gray-500">
+                {Array.from({ length: cuadricula }).flatMap((_, y) =>
+                  Array.from({ length: cuadricula }).map((_, x) => (
+                    <div
+                      key={`${x}-${y}`}
+                      className={`w-4 h-4 border border-gray-300 
               ${
                 celdaViborita(x, y)
                   ? 'bg-green-500'
@@ -138,9 +151,12 @@ function SnakeGame() {
                   ? 'bg-red-500'
                   : 'bg-white'
               }`}
-              ></div>
-            ))
-          )}
+                    ></div>
+                  ))
+                )}
+              </div>
+            </div>
+          </div>
         </div>
       </div>
     </>
