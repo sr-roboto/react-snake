@@ -1,16 +1,18 @@
-import React from 'react';
+import React, { use } from 'react';
 import { useEffect, useState, useRef } from 'react';
-import telefono from '../assets/telefono-antiguo.png';
+import telefono from '../assets/telefono-nokia3.png';
 
-const cuadricula = 10;
+const filas = 10;
+const columnas = 18;
 const posicionViborita = [{ x: 5, y: 5 }];
 const posicionInicial = { x: 1, y: 0 };
-const velocidad = 8;
+let velocidad = 20;
 
 function SnakeGame() {
   const [snake, setSnake] = useState(posicionViborita);
   const [direccion, setDireccion] = useState(posicionInicial);
   const [finalizar, setFinalizar] = useState(false);
+  const [score, setScore] = useState(0);
   const frameCountRef = useRef(0);
   const requestRef = useRef();
   const prevTimeRef = useRef();
@@ -20,8 +22,8 @@ function SnakeGame() {
       let nuevaComida;
       do {
         nuevaComida = {
-          x: Math.floor(Math.random() * cuadricula),
-          y: Math.floor(Math.random() * cuadricula),
+          x: Math.floor(Math.random() * columnas),
+          y: Math.floor(Math.random() * filas),
         };
       } while (
         snake.some(
@@ -41,16 +43,19 @@ function SnakeGame() {
   const moverViborita = () => {
     setSnake((prev) => {
       const cabeza = prev[0];
-      const nuevaCabeza = {
+      let nuevaCabeza = {
         x: cabeza.x + direccion.x,
         y: cabeza.y + direccion.y,
       };
 
+      // Si la cabeza sale por un borde, aparece por el otro lado
+      if (nuevaCabeza.x < 0) nuevaCabeza.x = columnas - 1;
+      if (nuevaCabeza.x >= columnas) nuevaCabeza.x = 0;
+      if (nuevaCabeza.y < 0) nuevaCabeza.y = filas - 1;
+      if (nuevaCabeza.y >= filas) nuevaCabeza.y = 0;
+
+      // Solo perdemos si nos chocamos con nuestro cuerpo
       if (
-        nuevaCabeza.x < 0 ||
-        nuevaCabeza.x >= cuadricula ||
-        nuevaCabeza.y < 0 ||
-        nuevaCabeza.y >= cuadricula ||
         prev.some(
           (segmento) =>
             segmento.x === nuevaCabeza.x && segmento.y === nuevaCabeza.y
@@ -64,6 +69,7 @@ function SnakeGame() {
 
       if (nuevaCabeza.x === comida.x && nuevaCabeza.y === comida.y) {
         setComida(generarComida(nuevoCuerpo));
+        setScore((score) => score + 10);
         return nuevoCuerpo;
       } else {
         nuevoCuerpo.pop();
@@ -111,6 +117,12 @@ function SnakeGame() {
     return () => window.removeEventListener('keydown', entradaTeclado);
   }, [direccion]);
 
+  useEffect(() => {
+    if (score >= 20) {
+      velocidad += -2;
+    }
+  }, [score]);
+
   const celdaViborita = (x, y) =>
     snake.some((part) => part.x === x && part.y === y);
 
@@ -118,43 +130,57 @@ function SnakeGame() {
 
   return (
     <>
-      // Contenedor principal que ocupa toda la pantalla y evita scroll
-      <div className="fixed inset-0 overflow-hidden bg-black">
-        <div className="flex justify-center items-center h-screen">
-          <div className="relative scale-200 md:w-96">
-            <div className="overflow-hidden">
-              <img
-                src={telefono}
-                alt="Teléfono antiguo"
-                className="w-full object-cover object-center"
-                style={{ marginTop: '-20%' }}
-              />
-            </div>
+      <div className="relative w-full h-screen flex items-center justify-center overflow-hidden">
+        <div className="relative w-full h-full flex items-center justify-center">
+          <img
+            src={telefono}
+            alt="Teléfono antiguo"
+            className="h-full object-contain z-10"
+          />
+          <div className="absolute flex items-center justify-center scale-600">
+            <div className="flex flex-col items-center bg-lime-600 p-2 px-14 rounded">
+              <div className="w-full mb-1 text-left">
+                <div className="text-black font-mono text-sm font-bold">
+                  {score.toString().padStart(4, '0')}
+                </div>
+                <div className="w-full h-1 bg-black mb-2"></div>
+              </div>
 
-            <div className="absolute top-[10%] left-[23%] w-[68%] h-[60%] flex flex-col items-center rounded-sm overflow-hidden">
+              {/* Cuadrícula del juego */}
+              <div className="border-2 border-black">
+                <div
+                  className="grid"
+                  style={{
+                    gridTemplateColumns: `repeat(${columnas}, minmax(0, 1fr))`,
+                    gridTemplateRows: `repeat(${filas}, minmax(0, 1fr))`,
+                  }}
+                >
+                  {Array.from({ length: filas }).flatMap((_, y) =>
+                    Array.from({ length: columnas }).map((_, x) => (
+                      <div
+                        key={`${x}-${y}`}
+                        className={`w-2 h-2 
+                        ${
+                          celdaViborita(x, y)
+                            ? 'bg-black'
+                            : celdaComida(x, y)
+                            ? 'bg-black'
+                            : ''
+                        }`}
+                      ></div>
+                    ))
+                  )}
+                </div>
+              </div>
+
+              {/* Mensaje de Game Over */}
               {finalizar && (
-                <div className="text-red-500 text-xs font-bold">
-                  ¡Game Over!
+                <div className="absolute top-[45%] w-full text-center mt-2">
+                  <span className="text-black text-xs font-bold">
+                    Perdiste paa
+                  </span>
                 </div>
               )}
-
-              <div className="grid grid-cols-10 border border-gray-500">
-                {Array.from({ length: cuadricula }).flatMap((_, y) =>
-                  Array.from({ length: cuadricula }).map((_, x) => (
-                    <div
-                      key={`${x}-${y}`}
-                      className={`w-4 h-4 border border-gray-300 
-              ${
-                celdaViborita(x, y)
-                  ? 'bg-green-500'
-                  : celdaComida(x, y)
-                  ? 'bg-red-500'
-                  : 'bg-white'
-              }`}
-                    ></div>
-                  ))
-                )}
-              </div>
             </div>
           </div>
         </div>

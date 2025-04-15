@@ -3,7 +3,7 @@ import SnakeGame from './components/SnakeGame';
 
 function App() {
   return (
-    <div className="min-h-screen bg-gray-100 flex justify-center items-center">
+    <div className="min-h-screen bg-black flex justify-center items-center">
       <SnakeGame />
     </div>
   );
