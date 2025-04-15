@@ -5,8 +5,8 @@ import audioFondo from '../assets/beat.mp3';
 import audioComida from '../assets/eat.mp3';
 import audioPerdiste from '../assets/lose.mp3';
 
-const filas = 10;
-const columnas = 18;
+const filas = 20;
+const columnas = 36;
 const posicionViborita = [{ x: 5, y: 5 }];
 const posicionInicial = { x: 1, y: 0 };
 let velocidad = 30;
@@ -151,6 +151,7 @@ function SnakeGame() {
       const nuevoCuerpo = [nuevaCabeza, ...prev];
 
       if (nuevaCabeza.x === comida.x && nuevaCabeza.y === comida.y) {
+        velocidad = Math.max(5, velocidad - 1);
         setComida(generarComida(nuevoCuerpo));
         setScore((score) => score + 10);
         reproducirSonidoComida();
@@ -201,12 +202,6 @@ function SnakeGame() {
     return () => window.removeEventListener('keydown', entradaTeclado);
   }, [direccion]);
 
-  useEffect(() => {
-    if (score >= 20) {
-      velocidad += -1.2;
-    }
-  }, [score]);
-
   const celdaViborita = (x, y) =>
     snake.some((part) => part.x === x && part.y === y);
 
@@ -232,11 +227,11 @@ function SnakeGame() {
           <img
             src={telefono}
             alt="Teléfono antiguo"
-            className="h-full object-contain z-10"
+            className="h-full w-full object-contain z-10"
           />
-          <div className="absolute flex items-center justify-center scale-600">
-            <div className="flex flex-col items-center bg-lime-600 p-2 px-14 rounded">
-              <div className="w-full mb-1 text-left">
+          <div className="absolute flex inset-0 items-center justify-center scale-300">
+            <div className="flex flex-col items-center bg-lime-600 p-2 px-14 py-14 rounded">
+              <div className="w-full mb-[2%] text-left pl-[5%]">
                 <div className="text-black font-mono text-sm font-bold">
                   {score.toString().padStart(4, '0')}
                 </div>
@@ -272,7 +267,7 @@ function SnakeGame() {
 
               {/* Mensaje de Game Over */}
               {finalizar && (
-                <div className="absolute top-[45%] w-full text-center mt-2">
+                <div className="absolute top-[49%] w-full text-center mt-2">
                   <span className="text-black text-xs font-bold">
                     Perdiste paa :(
                   </span>
