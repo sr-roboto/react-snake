@@ -105,13 +105,12 @@ function SnakeGame() {
   useEffect(() => {
     const habilitarAudioConInteraccion = () => {
       habilitarAudio();
-      // Remover listeners una vez habilitado
+
       ['click', 'keydown', 'touchstart'].forEach((event) =>
         document.removeEventListener(event, habilitarAudioConInteraccion)
       );
     };
 
-    // Agregar listeners para eventos comunes de interacción
     ['click', 'keydown', 'touchstart'].forEach((event) =>
       document.addEventListener(event, habilitarAudioConInteraccion)
     );
