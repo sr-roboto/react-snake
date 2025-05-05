@@ -41,21 +41,7 @@ function SnakeGame() {
   const requestRef = useRef();
   const prevTimeRef = useRef();
   const velocidadRef = useRef(CONFIG.velocidadInicial);
-  const generarComida = (snake) => {
-    let nuevaComida;
-    do {
-      nuevaComida = {
-        x: Math.floor(Math.random() * CONFIG.columnas),
-        y: Math.floor(Math.random() * CONFIG.filas),
-      };
-    } while (
-      snake.some(
-        (segmento) =>
-          segmento.x === nuevaComida.x && segmento.y === nuevaComida.y
-      )
-    );
-    return nuevaComida;
-  };
+
   const audioRefs = {
     fondo: useRef(new Audio(audioFondo)),
     comida: useRef(new Audio(audioComida)),
